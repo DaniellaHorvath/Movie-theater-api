@@ -5,9 +5,22 @@ const router = express.Router();
 
 // - `GET` all shows: GET/shows
 
+// router.get("/", async (req, res) => {
+//     const shows = await Show.findAll();
+//     res.json(shows);
+// })
+
+// - `GET` shows of a particular genre (genre in `req.query`): GET/shows?genre=
 router.get("/", async (req, res) => {
-    const shows = await Show.findAll();
-    res.json(shows);
+    const queryString = req.query
+    
+    if(queryString.genre){
+        const allShowsForThisQuery = await Show.findAll({ where: { genre: queryString.genre}});
+        res.status(200).send(allShowsForThisQuery); 
+    }else{
+        const allShows = await Show.findAll();
+        res.status(200).send(allShows)
+    }
 })
 
 // - `GET` one show: GET/shows/:showId
@@ -58,7 +71,7 @@ router.delete("/:showId", async (req, res) => {
 
 })
 
-// - `GET` shows of a particular genre (genre in `req.query`): GET/shows?genre=
+
 
 
 module.exports = router; 
