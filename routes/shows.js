@@ -1,6 +1,7 @@
 const express = require("express");
 const { User, Show } = require("../models/index.js")
 const router = express.Router();
+const {check, validationResult} = require("express-validator");
 
 
 // - `GET` all shows: GET/shows
@@ -12,10 +13,13 @@ const router = express.Router();
 
 // - `GET` shows of a particular genre (genre in `req.query`): GET/shows?genre=
 router.get("/", async (req, res) => {
+
+
     const queryString = req.query
     
     if(queryString.genre){
-        const allShowsForThisQuery = await Show.findAll({ where: { genre: queryString.genre}});
+        const allShowsForThisQuery = await Show.findAll({ 
+            where: { genre: queryString.genre}});
         res.status(200).send(allShowsForThisQuery); 
     }else{
         const allShows = await Show.findAll();
@@ -61,7 +65,25 @@ router.patch("/:showId", async (req, res) =>{
     const showUpdate = req.body;
     await show.update(showUpdate);
     res.send(show);
-})                                                                              
+})    
+
+
+// Add Server Side Validation to ensure show titles can be no longer than 25 characters in length
+router.post("/", 
+    check("title").isLength({min: 1, max: 25}).trim(),
+    async (req, res) => {
+        const errors = validationResult(req);
+
+        if(!errors.isEmpty()){
+            res.json({ error: errors.array()});
+            return;
+        }
+
+        const newShow = req.body;
+        const creatednewShow = await Show.create(newShow);
+        res.status(201).json(creatednewShow);
+
+})
 
 // - `DELETE` a show DELETE/shows/:showId
 router.delete("/:showId", async (req, res) => {
@@ -70,6 +92,7 @@ router.delete("/:showId", async (req, res) => {
     res.json(show);
 
 })
+
 
 
 

@@ -1,6 +1,7 @@
 const express = require("express");
 const { User, Show } = require("../models/index.js")
 const router = express.Router();
+const {check, validationResult} = require("express-validator");
 
 // - `GET` all shows: GET/users
 router.get("/", async (req, res) => {
@@ -48,8 +49,26 @@ router.put("/:userId/shows/:showId", async (req, res) => {
 
     await user.addShow(show);
     res.status(204).send();
-
 })
+
+// Add Server Side Validation to ensure a username must be an email address
+
+router.post("/", 
+    check("username").isEmail().trim(),
+    async (req, res) => {
+        const errors = validationResult(req);
+        
+        if(!errors.isEmpty()) {
+            res.json({ error: errors.array()});
+            return;
+        }
+        const newUser = req.body;
+        const createdNewUser = await User.create(newUser);
+        res.status(201).json(createdNewUser);
+
+    });
+
+
 
 
 module.exports = router;
